@@ -24,15 +24,15 @@ if (platform === 'android') {
 }
 
 function copyIcons(androidResBaseDir, webDirPath) {
-  const imgDir = path.resolve(projectDirPath, webDirPath, 'img');
+  const distDir = path.resolve(projectDirPath, webDirPath);
 
-  if (!fs.existsSync(imgDir)) {
-    console.warn('\t[SKIPPED] Icons source directory does not exist:', imgDir);
+  if (!fs.existsSync(distDir)) {
+    console.warn('\t[SKIPPED] Icons source directory does not exist:', distDir);
     return;
   }
 
   const files = fs
-    .readdirSync(imgDir)
+    .readdirSync(distDir)
     .filter(
       name =>
         name.indexOf('ic_icon') > -1 &&
@@ -41,12 +41,12 @@ function copyIcons(androidResBaseDir, webDirPath) {
     .sort();
 
   if (files.length === 0) {
-    console.warn('\t[SKIPPED] No icon files starting with "ic_icon" found in', imgDir);
+    console.warn('\t[SKIPPED] No icon files starting with "ic_icon" found in', distDir);
     return;
   }
 
   files.forEach((file, index) => {
-    const srcPath = path.join(imgDir, file);
+    const srcPath = path.join(distDir, file);
     const buffer = fs.readFileSync(srcPath);
     const parsed = path.parse(file);
     const ext = parsed.ext.toLowerCase() || '.png';
