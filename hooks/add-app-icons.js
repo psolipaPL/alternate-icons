@@ -1,37 +1,62 @@
 const fs = require('fs');
 const path = require('path');
 
-const projectRoot = path.join(__dirname, '..', '..');
-const androidRes = path.join(projectRoot, 'android', 'app', 'src', 'main', 'res');
-const distImg = path.join(projectRoot, 'dist', 'img');
+const platform = process.env.CAPACITOR_PLATFORM_NAME;
+const projectDirPath = process.env.CAPACITOR_ROOT_DIR;
+const webDirPath = process.env.CAPACITOR_WEB_DIR;
+
+console.log('\tAlternate Icons hook - platform:', platform);
+
+if (platform === 'android') {
+  const androidResBaseDir = path.resolve(
+    projectDirPath,
+    'android',
+    'app',
+    'src',
+    'main',
+    'res'
+  );
+  copyIcons(androidResBaseDir, webDirPath);
+} else {
+  console.log('\t[SKIPPED] Alternate Icons: nothing to do for platform', platform);
+}
 
 const DENSITIES = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi'];
 
-function getIconFiles() {
-  if (!fs.existsSync(distImg)) return [];
-  return fs
-    .readdirSync(distImg)
-    .filter(name =>
-      name.startsWith('ic_icon') &&
-      /\.(png|jpg|jpeg|webp)$/i.test(name)
+function copyIcons(androidResBaseDir, webDirPath) {
+  const imgDir = path.resolve(projectDirPath, webDirPath, 'img');
+
+  if (!fs.existsSync(imgDir)) {
+    console.warn('\t[SKIPPED] Icons source directory does not exist:', imgDir);
+    return;
+  }
+
+  const files = fs
+    .readdirSync(imgDir)
+    .filter(
+      name =>
+        name.startsWith('ic_icon') &&
+        /\.(png|jpg|jpeg|webp)$/i.test(name)
     );
-}
 
-function copyBufferToDensities(resName, buffer) {
-  for (const density of DENSITIES) {
-    const destDir = path.join(androidRes, `mipmap-${density}`);
-    const dest = path.join(destDir, `${resName}.png`);
-    fs.mkdirSync(destDir, { recursive: true });
-    fs.writeFileSync(dest, buffer);
+  if (files.length === 0) {
+    console.warn('\t[SKIPPED] No icon files starting with "ic_icon" found in', imgDir);
+    return;
   }
-}
 
-(async function main() {
-  const files = getIconFiles();
-  for (const file of files) {
-    const srcPath = path.join(distImg, file);
+  files.forEach(file => {
+    const srcPath = path.join(imgDir, file);
     const buffer = fs.readFileSync(srcPath);
-    const resName = path.parse(file).name;
-    copyBufferToDensities(resName, buffer);
-  }
-})();
+    const parsed = path.parse(file);
+    const resName = parsed.name;
+    const ext = parsed.ext.toLowerCase() || '.png';
+
+    DENSITIES.forEach(density => {
+      const destDir = path.join(androidResBaseDir, `mipmap-${density}`);
+      const destPath = path.join(destDir, `${resName}${ext}`);
+      fs.mkdirSync(destDir, { recursive: true });
+      fs.writeFileSync(destPath, buffer);
+      console.log(`\t[SUCCESS] Copied ${file} -> ${destPath}`);
+    });
+  });
+}
