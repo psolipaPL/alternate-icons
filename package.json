@@ -13,7 +13,8 @@
     "ios/Sources",
     "ios/Tests",
     "Package.swift",
-    "AlternateIcons.podspec"
+    "AlternateIcons.podspec",
+    "hooks"
   ],
   "author": "Paulo Solipa",
   "license": "MIT",
