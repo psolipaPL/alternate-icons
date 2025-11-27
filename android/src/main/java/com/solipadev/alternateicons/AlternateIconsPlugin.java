@@ -7,8 +7,8 @@ import android.content.pm.PackageManager;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
-import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
 
 import org.json.JSONException;
 
@@ -36,11 +36,10 @@ public class AlternateIconsPlugin extends Plugin {
         try {
             for (int i = 0; i < aliases.length(); i++) {
                 String alias = aliases.getString(i);
-                setAliasEnabled(context, alias, false);
+                setAliasEnabled(context, pm, alias, false);
             }
 
-            setMainActivityEnabled(pm, false);
-            setAliasEnabled(context, targetAlias, true);
+            setAliasEnabled(context, pm, targetAlias, true);
 
             call.resolve();
         } catch (JSONException e) {
@@ -52,7 +51,12 @@ public class AlternateIconsPlugin extends Plugin {
 
     @PluginMethod
     public void resetIcon(PluginCall call) {
+        String defaultAlias = call.getString("defaultAlias");
         JSArray aliases = call.getArray("aliases");
+
+        if (defaultAlias == null || defaultAlias.isEmpty()) {
+            defaultAlias = ".testicon";
+        }
 
         if (aliases == null || aliases.length() == 0) {
             call.reject("Parameter 'aliases' is required");
@@ -65,10 +69,10 @@ public class AlternateIconsPlugin extends Plugin {
         try {
             for (int i = 0; i < aliases.length(); i++) {
                 String alias = aliases.getString(i);
-                setAliasEnabled(context, alias, false);
+                setAliasEnabled(context, pm, alias, false);
             }
 
-            setMainActivityEnabled(pm, true);
+            setAliasEnabled(context, pm, defaultAlias, true);
 
             call.resolve();
         } catch (Exception e) {
@@ -76,8 +80,7 @@ public class AlternateIconsPlugin extends Plugin {
         }
     }
 
-    private void setAliasEnabled(Context context, String alias, boolean enabled) {
-        PackageManager pm = context.getPackageManager();
+    private void setAliasEnabled(Context context, PackageManager pm, String alias, boolean enabled) {
         String pkg = context.getPackageName();
 
         String fullName;
@@ -93,18 +96,6 @@ public class AlternateIconsPlugin extends Plugin {
 
         pm.setComponentEnabledSetting(
             componentName,
-            enabled
-                ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-                : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-            PackageManager.DONT_KILL_APP
-        );
-    }
-
-    private void setMainActivityEnabled(PackageManager pm, boolean enabled) {
-        ComponentName mainComponent = getActivity().getComponentName();
-
-        pm.setComponentEnabledSetting(
-            mainComponent,
             enabled
                 ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
                 : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
