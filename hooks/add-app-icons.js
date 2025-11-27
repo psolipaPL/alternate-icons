@@ -20,7 +20,7 @@ const files = fs
   .readdirSync(imgDir)
   .filter(
     name =>
-      name.startsWith('ic_icon') &&
+      name.indexOf('ic_icon') > -1 &&
       /\.png$/i.test(name)
   )
   .sort();
