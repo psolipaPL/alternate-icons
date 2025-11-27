@@ -1,23 +1,18 @@
 import Foundation
 import Capacitor
 
-/**
- * Please read the Capacitor iOS Plugin Development Guide
- * here: https://capacitorjs.com/docs/plugins/ios
- */
 @objc(AlternateIconsPlugin)
-public class AlternateIconsPlugin: CAPPlugin, CAPBridgedPlugin {
-    public let identifier = "AlternateIconsPlugin"
-    public let jsName = "AlternateIcons"
-    public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "echo", returnType: CAPPluginReturnPromise)
-    ]
+public class AlternateIconsPlugin: CAPPlugin {
     private let implementation = AlternateIcons()
 
-    @objc func echo(_ call: CAPPluginCall) {
-        let value = call.getString("value") ?? ""
-        call.resolve([
-            "value": implementation.echo(value)
-        ])
+    @objc override public func load() {
+    }
+
+    @objc public func changeIcon(_ call: CAPPluginCall) {
+        implementation.changeIcon(call)
+    }
+
+    @objc public func resetIcon(_ call: CAPPluginCall) {
+        implementation.resetIcon(call)
     }
 }
