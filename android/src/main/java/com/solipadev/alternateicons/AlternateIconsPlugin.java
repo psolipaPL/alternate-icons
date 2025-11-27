@@ -1,7 +1,5 @@
 package com.solipadev.alternateicons;
 
-package com.example.appicon;
-
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
