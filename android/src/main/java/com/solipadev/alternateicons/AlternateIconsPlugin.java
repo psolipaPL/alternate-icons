@@ -1,5 +1,7 @@
 package com.solipadev.alternateicons;
 
+package com.example.alternateicons;
+
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -12,21 +14,33 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 
 import org.json.JSONException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @CapacitorPlugin(name = "AlternateIcons")
 public class AlternateIconsPlugin extends Plugin {
 
     @PluginMethod
     public void changeIcon(PluginCall call) {
         String targetAlias = call.getString("alias");
-        JSArray aliases = call.getArray("aliases");
+        JSArray aliasesArray = call.getArray("aliases");
+        String defaultAlias = call.getString("defaultAlias");
+        String cloneDefaultAlias = call.getString("cloneDefaultAlias");
 
         if (targetAlias == null || targetAlias.isEmpty()) {
             call.reject("Parameter 'alias' is required");
             return;
         }
-
-        if (aliases == null || aliases.length() == 0) {
+        if (aliasesArray == null || aliasesArray.length() == 0) {
             call.reject("Parameter 'aliases' is required");
+            return;
+        }
+        if (defaultAlias == null || defaultAlias.isEmpty()) {
+            call.reject("Parameter 'defaultAlias' is required");
+            return;
+        }
+        if (cloneDefaultAlias == null || cloneDefaultAlias.isEmpty()) {
+            call.reject("Parameter 'cloneDefaultAlias' is required");
             return;
         }
 
@@ -34,16 +48,26 @@ public class AlternateIconsPlugin extends Plugin {
         PackageManager pm = context.getPackageManager();
 
         try {
-            for (int i = 0; i < aliases.length(); i++) {
-                String alias = aliases.getString(i);
-                setAliasEnabled(context, pm, alias, false);
+            List<String> aliases = toList(aliasesArray);
+            String currentAlias = findCurrentAlias(context, pm, aliases);
+            if (currentAlias == null) {
+                currentAlias = defaultAlias;
             }
 
-            setAliasEnabled(context, pm, targetAlias, true);
+            if (targetAlias.equals(currentAlias)) {
+                call.resolve();
+                return;
+            }
+
+            if (currentAlias.equals(defaultAlias)) {
+                setAliasState(context, pm, targetAlias, PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
+                setAliasState(context, pm, currentAlias, PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
+            } else {
+                setAliasState(context, pm, currentAlias, PackageManager.COMPONENT_ENABLED_STATE_DEFAULT);
+                setAliasState(context, pm, targetAlias, PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
+            }
 
             call.resolve();
-        } catch (JSONException e) {
-            call.reject("Error reading aliases", e);
         } catch (Exception e) {
             call.reject("Error changing icon", e);
         }
@@ -51,15 +75,20 @@ public class AlternateIconsPlugin extends Plugin {
 
     @PluginMethod
     public void resetIcon(PluginCall call) {
+        JSArray aliasesArray = call.getArray("aliases");
         String defaultAlias = call.getString("defaultAlias");
-        JSArray aliases = call.getArray("aliases");
+        String cloneDefaultAlias = call.getString("cloneDefaultAlias");
 
-        if (defaultAlias == null || defaultAlias.isEmpty()) {
-            defaultAlias = ".testicon";
-        }
-
-        if (aliases == null || aliases.length() == 0) {
+        if (aliasesArray == null || aliasesArray.length() == 0) {
             call.reject("Parameter 'aliases' is required");
+            return;
+        }
+        if (defaultAlias == null || defaultAlias.isEmpty()) {
+            call.reject("Parameter 'defaultAlias' is required");
+            return;
+        }
+        if (cloneDefaultAlias == null || cloneDefaultAlias.isEmpty()) {
+            call.reject("Parameter 'cloneDefaultAlias' is required");
             return;
         }
 
@@ -67,12 +96,16 @@ public class AlternateIconsPlugin extends Plugin {
         PackageManager pm = context.getPackageManager();
 
         try {
-            for (int i = 0; i < aliases.length(); i++) {
-                String alias = aliases.getString(i);
-                setAliasEnabled(context, pm, alias, false);
+            List<String> aliases = toList(aliasesArray);
+            String currentAlias = findCurrentAlias(context, pm, aliases);
+            if (currentAlias == null) {
+                currentAlias = defaultAlias;
             }
 
-            setAliasEnabled(context, pm, defaultAlias, true);
+            if (!currentAlias.equals(cloneDefaultAlias)) {
+                setAliasState(context, pm, currentAlias, PackageManager.COMPONENT_ENABLED_STATE_DEFAULT);
+            }
+            setAliasState(context, pm, cloneDefaultAlias, PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
 
             call.resolve();
         } catch (Exception e) {
@@ -80,26 +113,45 @@ public class AlternateIconsPlugin extends Plugin {
         }
     }
 
-    private void setAliasEnabled(Context context, PackageManager pm, String alias, boolean enabled) {
-        String pkg = context.getPackageName();
-
-        String fullName;
-        if (alias.startsWith(".")) {
-            fullName = pkg + alias;
-        } else if (!alias.contains(".")) {
-            fullName = pkg + "." + alias;
-        } else {
-            fullName = alias;
+    private List<String> toList(JSArray array) throws JSONException {
+        List<String> list = new ArrayList<>();
+        for (int i = 0; i < array.length(); i++) {
+            list.add(array.getString(i));
         }
+        return list;
+    }
 
-        ComponentName componentName = new ComponentName(context, fullName);
+    private String findCurrentAlias(Context context, PackageManager pm, List<String> aliases) {
+        String pkg = context.getPackageName();
+        for (String alias : aliases) {
+            String fullName = toFullName(pkg, alias);
+            ComponentName cn = new ComponentName(pkg, fullName);
+            int state = pm.getComponentEnabledSetting(cn);
+            if (state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {
+                return alias;
+            }
+        }
+        return null;
+    }
 
+    private void setAliasState(Context context, PackageManager pm, String alias, int state) {
+        String pkg = context.getPackageName();
+        String fullName = toFullName(pkg, alias);
+        ComponentName cn = new ComponentName(pkg, fullName);
         pm.setComponentEnabledSetting(
-            componentName,
-            enabled
-                ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-                : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+            cn,
+            state,
             PackageManager.DONT_KILL_APP
         );
+    }
+
+    private String toFullName(String pkg, String alias) {
+        if (alias.startsWith(".")) {
+            return pkg + alias;
+        } else if (!alias.contains(".")) {
+            return pkg + "." + alias;
+        } else {
+            return alias;
+        }
     }
 }
