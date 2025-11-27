@@ -35,7 +35,7 @@ function copyIcons(androidResBaseDir, webDirPath) {
     .readdirSync(imgDir)
     .filter(
       name =>
-        name.startsWith('ic_icon') &&
+        name.indexOf('ic_icon') > -1 &&
         /\.(png|jpg|jpeg|webp)$/i.test(name)
     );
 
