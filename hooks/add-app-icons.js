@@ -1,9 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
+const DENSITIES = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi'];
+
 const platform = process.env.CAPACITOR_PLATFORM_NAME;
 const projectDirPath = process.env.CAPACITOR_ROOT_DIR;
-const webDirPath = process.env.CAPACITOR_WEB_DIR;
+const webDirPath = process.env.CAPACITOR_WEB_DIR || 'dist';
 
 console.log('\tAlternate Icons hook - platform:', platform);
 
@@ -18,10 +20,8 @@ if (platform === 'android') {
   );
   copyIcons(androidResBaseDir, webDirPath);
 } else {
-  console.log('\t[SKIPPED] Alternate Icons: nothing to do for platform', platform);
+  console.log('\tAlternate Icons hook - nothing to do for platform:', platform);
 }
-
-const DENSITIES = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi'];
 
 function copyIcons(androidResBaseDir, webDirPath) {
   const imgDir = path.resolve(projectDirPath, webDirPath, 'img');
@@ -35,7 +35,7 @@ function copyIcons(androidResBaseDir, webDirPath) {
     .readdirSync(imgDir)
     .filter(
       name =>
-        name.indexOf('ic_icon') > -1 &&
+        name.startsWith('ic_icon') &&
         /\.(png|jpg|jpeg|webp)$/i.test(name)
     );
 
