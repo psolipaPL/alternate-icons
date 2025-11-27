@@ -30,7 +30,7 @@
     "native"
   ],
   "scripts": {
-    "capacitor:update:after": "node tools/app-icons/add-app-icons.js"
+    "capacitor:update:after": "node hooks/add-app-icons.js"
   },
   "devDependencies": {
     "@capacitor/android": "^7.0.0",
