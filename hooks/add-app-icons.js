@@ -37,23 +37,24 @@ function copyIcons(androidResBaseDir, webDirPath) {
       name =>
         name.indexOf('ic_icon') > -1 &&
         /\.(png|jpg|jpeg|webp)$/i.test(name)
-    );
+    )
+    .sort();
 
   if (files.length === 0) {
     console.warn('\t[SKIPPED] No icon files starting with "ic_icon" found in', imgDir);
     return;
   }
 
-  files.forEach(file => {
+  files.forEach((file, index) => {
     const srcPath = path.join(imgDir, file);
     const buffer = fs.readFileSync(srcPath);
     const parsed = path.parse(file);
-    const resName = parsed.name;
     const ext = parsed.ext.toLowerCase() || '.png';
+    const targetBaseName = `ic_icon${index + 1}`;
 
     DENSITIES.forEach(density => {
       const destDir = path.join(androidResBaseDir, `mipmap-${density}`);
-      const destPath = path.join(destDir, `${resName}${ext}`);
+      const destPath = path.join(destDir, `${targetBaseName}${ext}`);
       fs.mkdirSync(destDir, { recursive: true });
       fs.writeFileSync(destPath, buffer);
       console.log(`\t[SUCCESS] Copied ${file} -> ${destPath}`);
