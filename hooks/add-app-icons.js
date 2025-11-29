@@ -68,7 +68,8 @@ function copyIconsIos(files) {
     projectDirPath,
     'ios',
     'App',
-    'App'
+    'App',
+    'public'
   );
 
   if (!fs.existsSync(iosAppDir)) {
