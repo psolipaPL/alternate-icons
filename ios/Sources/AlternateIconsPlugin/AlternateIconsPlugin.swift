@@ -1,17 +1,18 @@
 import Foundation
-import UIKit
 import Capacitor
+import UIKit
 
-@objc public class AlternateIconsPlugin: CAPPlugin, CAPBridgedPlugin {
-    
+@objc(AlternateIconsPlugin)
+public class AlternateIconsPlugin: CAPPlugin, CAPBridgedPlugin {
+
     public let identifier = "AlternateIconsPlugin"
     public let jsName = "AlternateIcons"
-    public let pluginMethods = [CAPPluginMethod] = [
+    public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "changeIcon", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "resetIcon", returnType: CAPPluginReturnPromise),
     ]
 
-    @objc public func changeIcon(_ call: CAPPluginCall) {
+    @objc func changeIcon(_ call: CAPPluginCall) {
         guard UIApplication.shared.supportsAlternateIcons else {
             call.reject("Alternate icons are not supported on this device")
             return
@@ -30,27 +31,23 @@ import Capacitor
             return
         }
 
-        DispatchQueue.main.async {
-            UIApplication.shared.setAlternateIconName(iconName) { error in
-                if let error = error {
-                    call.reject("Error changing icon: \(error.localizedDescription)")
-                } else {
-                    call.resolve()
-                }
-            }
-        }
+        setIcon(name: iconName, call)
     }
 
-    @objc public func resetIcon(_ call: CAPPluginCall) {
+    @objc func resetIcon(_ call: CAPPluginCall) {
         guard UIApplication.shared.supportsAlternateIcons else {
             call.reject("Alternate icons are not supported on this device")
             return
         }
 
+        setIcon(name: nil, call)
+    }
+
+    private func setIcon(name: String?, _ call: CAPPluginCall) {
         DispatchQueue.main.async {
-            UIApplication.shared.setAlternateIconName(nil) { error in
+            UIApplication.shared.setAlternateIconName(name) { error in
                 if let error = error {
-                    call.reject("Error resetting icon: \(error.localizedDescription)")
+                    call.reject("Error changing icon: \(error.localizedDescription)")
                 } else {
                     call.resolve()
                 }
