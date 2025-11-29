@@ -24,12 +24,12 @@ npx cap sync
 ### changeIcon(...)
 
 ```typescript
-changeIcon(options: { alias: string; aliases: string[]; }) => Promise<void>
+changeIcon(options: { alias: string; aliases: string[]; defaultAlias: string; cloneDefaultAlias: string; }) => Promise<void>
 ```
 
-| Param         | Type                                               |
-| ------------- | -------------------------------------------------- |
-| **`options`** | <code>{ alias: string; aliases: string[]; }</code> |
+| Param         | Type                                                                                                |
+| ------------- | --------------------------------------------------------------------------------------------------- |
+| **`options`** | <code>{ alias: string; aliases: string[]; defaultAlias: string; cloneDefaultAlias: string; }</code> |
 
 --------------------
 
@@ -37,12 +37,12 @@ changeIcon(options: { alias: string; aliases: string[]; }) => Promise<void>
 ### resetIcon(...)
 
 ```typescript
-resetIcon(options: { defaultAlias?: string; aliases: string[]; }) => Promise<void>
+resetIcon(options: { aliases: string[]; defaultAlias: string; cloneDefaultAlias: string; }) => Promise<void>
 ```
 
-| Param         | Type                                                       |
-| ------------- | ---------------------------------------------------------- |
-| **`options`** | <code>{ defaultAlias?: string; aliases: string[]; }</code> |
+| Param         | Type                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------ |
+| **`options`** | <code>{ aliases: string[]; defaultAlias: string; cloneDefaultAlias: string; }</code> |
 
 --------------------
 
