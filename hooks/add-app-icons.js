@@ -64,50 +64,26 @@ function copyIconsAndroid(files) {
 }
 
 function copyIconsIos(files) {
-  const iosAssetsBaseDir = path.resolve(
+  const iosAppDir = path.resolve(
     projectDirPath,
     'ios',
     'App',
-    'App',
-    'Assets.xcassets'
+    'App'
   );
 
-  if (!fs.existsSync(iosAssetsBaseDir)) {
-    console.warn('\t[SKIPPED] iOS Assets.xcassets directory does not exist:', iosAssetsBaseDir);
+  if (!fs.existsSync(iosAppDir)) {
+    console.warn('\t[SKIPPED] iOS App directory does not exist:', iosAppDir);
     return;
   }
 
   files.forEach((file, index) => {
     const srcPath = path.join(imgDir, file);
-    const buffer = fs.readFileSync(srcPath);
-    const iconName = `icon${index + 1}`;
-    const appIconSetDir = path.join(iosAssetsBaseDir, `${iconName}.appiconset`);
-    const destFileName = `${iconName}.png`;
-    const destPath = path.join(appIconSetDir, destFileName);
+    const iconName = `icon${index + 1}`;      // icon1, icon2, ...
+    const destFileName = `${iconName}.png`;   // icon1.png, icon2.png
+    const destPath = path.join(iosAppDir, destFileName);
 
-    fs.mkdirSync(appIconSetDir, { recursive: true });
-    fs.writeFileSync(destPath, buffer);
-
-    const contents = {
-      images: [
-        {
-          idiom: 'iphone',
-          size: '60x60',
-          scale: '3x',
-          filename: destFileName
-        }
-      ],
-      info: {
-        version: 1,
-        author: 'xcode'
-      }
-    };
-
-    fs.writeFileSync(
-      path.join(appIconSetDir, 'Contents.json'),
-      JSON.stringify(contents, null, 2)
-    );
-
+    fs.copyFileSync(srcPath, destPath);
     console.log(`\t[SUCCESS][ios] Copied ${file} -> ${destPath}`);
   });
 }
+
